@@ -45,10 +45,10 @@ class LegislatorTest < ActiveSupport::TestCase
     assert @legislator.valid?
   end
 
-  test "should be able to get the reps for all legislators" do
-    Legislator.all.each do |l|
-      puts l.the_rep
-    end
-  end
+  #test "should be able to get the reps for all legislators" do
+  #  Legislator.all.each do |l|
+  #    puts l.the_rep
+  #  end
+  #end
 
 end

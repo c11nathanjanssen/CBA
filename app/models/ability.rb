@@ -25,6 +25,9 @@ class Ability
         can [:read, :manage, :update_avatar, :crop_avatar], User do |usr|
           user == usr
         end
+        can [:manage], UserNotification do |notification|
+          notification.user == user
+        end
 
         # Users with role
         if user.role?(:guest)
@@ -55,14 +58,14 @@ class Ability
       end
 
       # Anybody
-      can :read, [Page, Blog, Posting, Bill, PolcoGroup] do |resource|
+      can :read, [Posting, Bill, PolcoGroup]
+      can :read, [Page, Blog] do |resource|
         if resource.respond_to? :is_draft
           resource.is_draft != true
         else
           true
         end
       end
-      #can [:e_ballot, :show_bill_text, :vote_on_bill, :senate_bills, :process_page, :district_results, :house_results, :senate_results], Bill
       can :create, Comment
       can :read, Comment do |comment|
         comment && !comment.new_record?

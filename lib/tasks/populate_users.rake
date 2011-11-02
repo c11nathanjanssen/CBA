@@ -1,4 +1,4 @@
-require 'faker'
+
 
 users_to_add = 10
 groups_to_add = 10
@@ -11,6 +11,7 @@ groups_to_add = 10
 namespace :data do
   desc "Get us lots of users and votes"
   task :load_users => :environment do
+    require 'faker'
     # load members
     puts "let us make lots of groups"
     new_ids = []

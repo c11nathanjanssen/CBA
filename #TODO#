@@ -1,4 +1,7 @@
-get tests to run
-get twitter working
-deploy it
-figure out and fix authentication
+
+- get user sign-up flow working (with cucumber)
+- no vote submit button??
+- check up on the crap we are seeing for bills
+- get search up
+- cloud on side
+- figure out what the user_groups page is

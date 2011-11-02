@@ -74,4 +74,8 @@ class HomeController < ApplicationController
     @postings = Posting.tagged_with(params[:tag]).order([:created_at, :desc])
   end
 
+  def polco_info
+
+  end
+
 end

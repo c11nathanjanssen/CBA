@@ -24,9 +24,15 @@
 
 = render :partial => 'comments_subpage', :locals => {:bill => @bill}
 
+<<<<<<< HEAD
 /here is the district count region
 
 - if @bill.activity? || !current_user.voted_on(@bill)
+=======
+/ @bill.voted_on?(current_user) can be used here
+
+- if @bill.activity?
+>>>>>>> 325b9e6afa8522c69940df9fa1ff1555754d9a8c
 
   %p
     How are other districts voting on

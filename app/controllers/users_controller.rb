@@ -28,7 +28,7 @@ class UsersController < ApplicationController
     # i don't like this but it is a good way to get a default address
     address_attempt = [38.7909, -77.0947] if address_attempt.all? { |a| a == 0 }
     @coords = build_coords(address_attempt)
-    district = @user.get_district(address_attempt).first
+    district = @user.get_district_from_coords(address_attempt).first
     @district, @state = district.district, district.us_state
     @lat = params[:lat] || "19.71844"
     @lon = params[:lon] || "-155.095228"
@@ -40,11 +40,11 @@ class UsersController < ApplicationController
     case params[:commit]
       when "Yes"
         coords= Geocoder.coordinates(params[:location])
-        districts = user.get_district(coords)
+        districts = user.get_district_from_coords(coords)
         flash[:method] = :ip_lookup
       when "Submit Address"
         coords = Geocoder.coordinates(build_address(params))
-        districts = user.get_district(coords)
+        districts = user.get_district_from_coords(coords)
         flash[:method] = :address
       when "Submit Zip Code"
         districts = user.get_districts_by_zipcode(params[:zip_code])
@@ -151,7 +151,7 @@ class UsersController < ApplicationController
   end
 
   def notifications
-    @notifications = current_user.user_notifications.hidden
+    @notifications = current_user.user_notifications.unscoped.desc(:created_at)
   end
 
   def details
@@ -166,7 +166,7 @@ class UsersController < ApplicationController
     respond_to do |format|
        format.json { 
          render :json => User.any_of({ name: /#{params[:q]}/i }, { email: /#{params[:q]}/i })
-                             .only(:id,:name)
+                             .only(:id,:name,:email)
                              .map{ |user| 
                                [
                                  :id   => user.id.to_s, 

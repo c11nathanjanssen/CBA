@@ -7,40 +7,48 @@ class BillTest < ActiveSupport::TestCase
     load_all_sponsors
     Bill.destroy_all # clean slate
     PolcoGroup.destroy_all
+    User.destroy_all
     rep = Legislator.representatives.first
     senator1 = Legislator.senators.first
     senator2 = Legislator.senators[1]
     puts "!!!!!!!!!!!!!!!! all polco groups: #{PolcoGroup.all.size}"
     @house_bill = Bill.new(:govtrack_name => "h1", :title => Faker::Name.name)
-    common_group = Fabricate(:polco_group, {:name => 'Dan Cole', :type => :common})
-    cali_group = Fabricate(:polco_group, {:name => 'CA', :type => :state})
-    va_group = Fabricate(:polco_group, {:name => 'VA', :type => :state})
-    ca46 = Fabricate(:polco_group, {:name => 'CA46', :type => :district})
-    va05 = Fabricate(:polco_group, {:name => 'VA05', :type => :district})
-    va03 = Fabricate(:polco_group, {:name => 'VA03', :type => :district})
-    @user1 = Fabricate.build(:registered, {:joined_groups => [common_group,
-                                                              cali_group,
-                                                              ca46,
-                                                              Fabricate(:polco_group, {:name => "Gang of 12", :type => :custom})],
-                                           :followed_groups => [va05, va_group],
-                                           :district => 'CA46',
+    common_group = Fabricate(:polco_group, {:name => 'Dan Cole', :type => :common, title: 'dc_common'})
+    cali_group = Fabricate(:polco_group, {:name => 'CA', :type => :state, title: 'CA_state'})
+    va_group = Fabricate(:polco_group, {:name => 'VA', :type => :state, title: "VA_state"})
+    ca46 = Fabricate(:polco_group, {name: 'CA46', type: :district, title: "CA46_district"})
+    va05 = Fabricate(:polco_group, {name: 'VA05', type: :district, title: "VA05_district"})
+    va03 = Fabricate(:polco_group, {name: 'VA03', type: :district, title: "VA03_district"})
+    @user1 = Fabricate.build(:registered, {:district => 'CA46',
                                            :us_state => 'CA',
                                            :senators => [senator1, senator2],
-                                           :representative => rep
-    })
+                                           :representative => rep})
+    @user1.joined_groups << [common_group,
+                             cali_group,
+                             ca46,
+                             Fabricate(:polco_group, {:name => "Gang of 13", :type => :custom, title: 'gang_13_custom'})]
+    @user1.followed_groups << [va05, va_group]
+    #@user1.save
+
+    #@user1.reload
     puts "just created user with these groups:"
+    puts @user1.joined_groups.map(&:name)
+    puts "then secondly"
     puts @user1.joined_groups.map(&:name)
     @user2 = Fabricate.build(:registered, {:joined_groups => [common_group,
                                                               cali_group,
                                                               ca46,
                                                               Fabricate(:polco_group, {:name => "Ft. Sam Washington 1st Grade", :type => :custom})]})
+    puts " !!!!!!!!! after second user"
+    puts @user1.joined_groups.map(&:name)
+
     @user3 = Fabricate.build(:registered, {:joined_groups => [common_group,
                                                               va_group,
                                                               va05]})
     @user4 = Fabricate.build(:registered, {:joined_groups => [common_group,
                                                               va_group,
                                                               va03,
-                                                              Fabricate(:polco_group, {:name => Faker::Company.name, :type => :custom})]})
+                                                              Fabricate(:polco_group, {name: Faker::Company.name, type: :custom, title: Faker::Company.name})]})
                      # we need one bill to update
     Fabricate(:bill, :govtrack_id => "h112-26", :title => 'h112-26', :ident => '112-h26')
                      # build senate bill
@@ -57,6 +65,7 @@ class BillTest < ActiveSupport::TestCase
       bill.bill_html = "The mock bill contents"
     end
     @house_bill.save!
+
   end
 
   test "a bill should have a long and short title" do
@@ -84,25 +93,14 @@ class BillTest < ActiveSupport::TestCase
     assert_equal({:ayes => 2, :nays => 1, :abstains => 1, :presents => 0}, tally, "Expected 2 aye, 1 nay, and 1 abstain")
   end
 
-# looks like we don't call this anymore
-=begin
-  test "should be able to build a descriptive tally that prints the tally as html" do
-    b = @house_bill
-    @user1.vote_on(b, :aye)
-    @user2.vote_on(b, :nay)
-    @user3.vote_on(b, :aye)
-    @user4.vote_on(b, :abstain)
-    tally = b.descriptive_tally
-    assert_not_nil tally
-  end
-=end
-
   test "should verify that a user has already voted" do
     #user = Fabricate(:user, :name => "George Whitfield", :email => "awaken@gloucester.com")
     puts "starting"
     Vote.destroy_all
     b = @house_bill
     @user1.vote_on(b, :aye)
+    puts "## #{b.valid?}"
+    puts b.errors.inspect
     b.save!
     puts "all votes"
     puts Vote.all.count
@@ -263,7 +261,11 @@ class BillTest < ActiveSupport::TestCase
     # so we can put something like this in our views
     #@user1.joined_groups
     #@user1.followed_groups
+    puts "********************"
+    puts " starting this test "
+    puts "********************"
     puts "user groups at start:"
+    puts @user1.joined_groups.map(&:name)
     puts @user1.joined_groups.size
     @user1.vote_on(@house_bill, :aye) # follows va05
     puts "new size #{@user1.joined_groups.size}"
@@ -271,7 +273,7 @@ class BillTest < ActiveSupport::TestCase
     @user3.vote_on(@house_bill, :abstain) # joined va05
     @user4.vote_on(@house_bill, :present)
     puts @user1.joined_groups.map(&:name)
-    puts "before !! #{@user1.joined_groups.size}"
+    puts "before !! #{@user1.joined_groups.count}"
     joined_groups = @user1.joined_groups_tallies(@house_bill)
     puts joined_groups.inspect
     followed_groups = @user1.followed_groups_tallies(@house_bill)

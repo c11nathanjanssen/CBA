@@ -32,13 +32,19 @@ class PolcoGroup
 
   has_many :votes
 
-  before_validation :make_title
+  #before_validation :make_title
 
   def make_title
-    puts "making title and setting draft to false"
+    puts "making title and setting draft to false for #{self.name}"
     self.title = "#{self.name}_#{self.type}"
     self.is_draft = false
     true
+  end
+
+  def add_member(user_obj)
+    self.members.push(user_obj)
+    self.member_count += 1
+    self.save
   end
 
   #we want to increment member_count when a new member is added

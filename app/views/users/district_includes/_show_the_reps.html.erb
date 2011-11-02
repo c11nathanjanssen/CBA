@@ -1,16 +1,11 @@
-<% content_for :maps do %>
-    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAF2jjgfkpOddMIjo3r_vhYxQ2LYO4t9FpMQp-hEZNbo0RPsyanxRej9Rkx83RZrGhbX6LYOLmZpzibA" type="text/javascript"></script>
-    <script type="text/javascript" src="http://www.govtrack.us/scripts/gmap-wms.js"></script>
-<% end %>
-
 <!-- representative information -->
 <p>Based on this address, your district is: <b><%= district %></b> in the state of <%= state.to_us_state %></p>
 
 <script type="text/javascript">
- <%#= render :partial => 'users/district_includes/map.js', :locals => {:district => district, :coords => coords} %>
+    var d_data = <%= render file: "#{Rails.root}/data/district_data/#{@district}.json" %>;
 </script>
 
-<div id="googlemap" style="width:500px; height:300px"></div>
+<div id="users-district-display" style="width:500px; height:300px"></div>
 
 <div class="component_float_left_300" style="height:400px;">
 <h3>Senior Senator</h3>
@@ -34,41 +29,3 @@
 <div class="clear_both"></div>
 
 <p>If this isn't correct, you can change that <%= link_to 'here', users_geocode_path %></p>
-
-<script type="text/javascript">
-
-var map;
-
-if (!GBrowserIsCompatible()) {
-	//alert("This page uses Google Maps, which is unfortunately not supported by your browser.");
-} else {
-	var WMS_URL = 'http://www.govtrack.us/perl/wms-cd.cgi?';
-	//var G_MAP_LAYER_FILLED = createWMSTileLayer(WMS_URL, "cd-filled,district=NJ12", null, "image/gif", null, null, null, .25);
-	var G_MAP_LAYER_FILLED = createWMSTileLayer(WMS_URL, "cd-filled,district=<%= district %>", null, "image/gif", null, null, null, .25);
-	var G_MAP_LAYER_OUTLINES = createWMSTileLayer(WMS_URL, "cd-outline,district=<%= district %>", null, "image/gif", null, null, null, .66, "Data from GovTrack.us");
-	var G_MAP_OVERLAY = createWMSOverlayMapType([G_NORMAL_MAP.getTileLayers()[0], G_MAP_LAYER_FILLED, G_MAP_LAYER_OUTLINES], "Overlay");
-
-	document.getElementById("googlemap").style.height = (screen.height - 485) + "px";
-	map = new GMap2(document.getElementById("googlemap"));
-	map.enableContinuousZoom()
-	map.removeMapType(G_SATELLITE_MAP);
-	map.addMapType(G_MAP_OVERLAY);
-	map.addControl(new GLargeMapControl());
-	//map.addControl(new GMapTypeControl());
-	//map.addControl(new GOverviewMapControl());
-	map.addControl(new GScaleControl());
-	map.setMapType(G_MAP_OVERLAY);
-
-	map.setCenter(new GLatLng(<%= coords %>), 8);
-	createMarker(<%= @coords %>,'<%= state %>', '12');
-}
-
-function createMarker(x, y, s, d) {
-	var marker = new GMarker(new GPoint(x, y));
-	GEvent.addListener(marker, "click", function() {
-		if (d == 0) d = "At Large";
-		marker.openInfoWindowHtml("This is " + s + "'s district " + d + "!");
-	});
-	map.addOverlay(marker);
-}
-</script>

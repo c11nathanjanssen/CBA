@@ -29,6 +29,9 @@ config/google_analytics.head
 config/google_site_search.html
 config/deploy.rb
 config/twitter.*.html
+system/**/*
+system/*
+system
 public/system/**/*
 public/assets
 public/assets/*

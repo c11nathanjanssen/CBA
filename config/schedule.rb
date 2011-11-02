@@ -20,5 +20,5 @@
 # Learn more: http://github.com/javan/whenever
 
 every 1.day, :at => '1:00 am' do
-  rake "data:pull_in_govtrack_data"
+  rake "data:get_govtrack_data"
 end

@@ -27,4 +27,3 @@ module OmniAuth
     autoload :Campus, File::join(Rails.root,'lib/campus_authorization')
   end
 end
-

@@ -249,6 +249,7 @@ class Bill
     # check for changes
     if bill && (self.introduced_date.nil? || (bill.introduced_date.to_date > self.introduced_date))
       # front-matter
+      puts "updating #{self.govtrack_name}"
       self.congress = bill.congress
       self.bill_type = bill.bill_type
       self.bill_number = bill.bill_number
@@ -289,6 +290,7 @@ class Bill
       self.summary_word_count = self.summary.to_s.word_count
       true
     else
+      puts "no need to update #{self.govtrack_name}"
       false
     end
 
@@ -344,83 +346,88 @@ class Bill
     actions.sort_by { |d, a| d }.reverse
   end
 
-  def Bill.update_rolls
-    files = Dir.glob("#{Rails.root}/data/rolls/*.xml").sort_by{|f| f.match(/\/.+\-(\d+)\./)[1].to_i}
-    # Yield to a block that can perform arbitrary calls on this bill
-    # for testing
-    if block_given?
-      files = yield(self)
-    end
-    # let's see if the file contains bill data
-    # TODO - (we need to modify this to only read in the new rolls)
-    bill_list = Bill.all.map(&:govtrack_id)
+  #def Bill.update_rolls
+  #  # we use regex match to pull the date out
+  #  files = Dir.glob("#{Rails.root}/data/rolls/*.xml").sort_by{|f| f.match(/\/.+\-(\d+)\./)[1].to_i}
+  #  # Yield to a block that can perform arbitrary calls on this bill
+  #  # for testing
+  #  if block_given?
+  #    files = yield(self)
+  #  end
+  #  # let's see if the file contains bill data
+  #  # TODO - (we need to modify this to only read in the new rolls)
+  #  # for right now, we can accept inefficiency
+  #  # somehow -- this might be calling faker (!)
+  #  bill_list = Bill.all.map(&:govtrack_id)
+  #
+  #  files.each do |bill_path|
+  #    f = File.new(bill_path, 'r')
+  #    puts "starting with #{f.path} . . ."
+  #    # "h112-26"
+  #    # at this point, we only read in bill roll calls
+  #    # if 1. it is a bill roll
+  #    #    2. if we are tracking that bill and
+  #    #    3. if the date of the roll is more recent than the last date of the roll recorded
+  #    if bill_data = f.read.match(/\<bill session="(\d+)" type="(\w+)" number="(\d+)"/)
+  #      bill_data = bill_data[1..3]
+  #      if bill_list.include?("#{bill_data[1].first}#{bill_data[0]}-#{bill_data[2]}") # do we have this bill
+  #        f.rewind
+  #        feed = Feedzirra::Parser::RollCall.parse(f)
+  #        date_for_update = Time.parse(feed.updated_time)
+  #        if feed.bill_type # && !(feed.required == "QUORUM")
+  #          govtrack_id = "#{feed.bill_type.first}#{feed.congress}-#{feed.bill_number}"
+  #          if b = Bill.where(govtrack_id: govtrack_id).first # should not fail, already checked
+  #            if b.roll_time.nil? || b.roll_time < date_for_update
+  #              # clear all previous entries
+  #              b.roll_time = date_for_update
+  #              b.member_votes = []
+  #              feed.roll_call.each do |v|
+  #                if l = Legislator.where(govtrack_id: v.member_id).first
+  #                  b.member_votes << MemberVote.new(:value => Bill.get_value(v.member_vote), :legislator => l)
+  #                else
+  #                  raise "legislator #{v.member_id} not found"
+  #                end
+  #              end
+  #              puts "success with #{bill_data[0]}-#{bill_data[1].first}#{bill_data[2]}"
+  #              b.save!
+  #            else
+  #              puts "no need to run #{bill_data[0]}-#{bill_data[1].first}#{bill_data[2]}"
+  #            end
+  #          else
+  #            puts "bill listed by #{govtrack_id} not found"
+  #            Rails.logger.warn "bill listed by #{govtrack_id} not found"
+  #          end
+  #          puts "updated roll for #{feed.bill_type}#{feed.congress}-#{feed.bill_number}"
+  #        else
+  #          puts "#{f.path} is not a bill vote"
+  #          Rails.logger.warn "#{f.path} is not a bill vote"
+  #        end
+  #      else
+  #        puts "we don't have the bill #{bill_data[2].first}#{bill_data[1]}-#{bill_data[3]}"
+  #      end
+  #    else
+  #      puts "#{f.path} not a bill roll"
+  #      puts "for this ident: #{bill_data[0]}-#{bill_data[1]}#{bill_data[2]}" if bill_data
+  #    end # check if bill roll
+  #  end
+  #end
 
-    files.each do |bill_path|
-      f = File.new(bill_path, 'r')
-      puts "starting with #{f.path} . . ."
-      # "h112-26"
-      # at this point, we only read in bill roll calls
-      # if 1. it is a bill roll, 2. if we are tracking that bill and 3. if the date of the roll is more recent than the last date of the roll recorded
-      if bd = f.read.match(/\<bill session="(\d+)" type="(\w+)" number="(\d+)"/)
-        bd = bd[1..3]
-        if bill_list.include?("#{bd[1].first}#{bd[0]}-#{bd[2]}") # do we have this bill
-          f.rewind
-          feed = Feedzirra::Parser::RollCall.parse(f)
-          date_for_update = Time.parse(feed.updated_time)
-          if feed.bill_type # && !(feed.required == "QUORUM")
-            govtrack_id = "#{feed.bill_type.first}#{feed.congress}-#{feed.bill_number}"
-            if b = Bill.where(govtrack_id: govtrack_id).first # should not fail, already checked
-              if b.roll_time.nil? || b.roll_time < date_for_update
-                # clear all previous entries
-                b.roll_time = date_for_update
-                b.member_votes = []
-                feed.roll_call.each do |v|
-                  if l = Legislator.where(govtrack_id: v.member_id).first
-                    b.member_votes << MemberVote.new(:value => Bill.get_value(v.member_vote), :legislator => l)
-                  else
-                    raise "legislator #{v.member_id} not found"
-                  end
-                end
-                puts "success with #{bd[0]}-#{bd[1].first}#{bd[2]}"
-                b.save!
-              else
-                puts "no need to run #{bd[0]}-#{bd[1].first}#{bd[2]}"
-              end
-            else
-              puts "bill listed by #{govtrack_id} not found"
-              Rails.logger.warn "bill listed by #{govtrack_id} not found"
-            end
-            puts "updated roll for #{feed.bill_type}#{feed.congress}-#{feed.bill_number}"
-          else
-            puts "#{f.path} is not a bill vote"
-            Rails.logger.warn "#{f.path} is not a bill vote"
-          end
-        else
-          puts "we don't have the bill #{bd[2].first}#{bd[1]}-#{bd[3]}"
-        end
-      else
-        puts "#{f.path} not a bill roll"
-        puts "for this ident: #{bd[0]}-#{bd[1]}#{bd[2]}" if bd
-      end # check if bill roll
-    end
-  end
-
-  def self.get_value(the_value)
-    case the_value
-      when "+"
-        result = :aye
-      when "-"
-        result = :nay
-      when "0"
-        result = :abstain
-      when "P"
-        result = :present
-      else
-        raise "unknown value #{the_value} (expected +, -, P or 0)"
-        # if this is the case, we have to parse from <option key="P">Present</option>
-    end
-    result
-  end
+  #def self.get_value(the_value)
+  #  case the_value
+  #    when "+"
+  #      result = :aye
+  #    when "-"
+  #      result = :nay
+  #    when "0"
+  #      result = :abstain
+  #    when "P"
+  #      result = :present
+  #    else
+  #      raise "unknown value #{the_value} (expected +, -, P or 0)"
+  #      # if this is the case, we have to parse from <option key="P">Present</option>
+  #  end
+  #  result
+  #end
 
   def find_member_vote(member)
     if self.member_votes

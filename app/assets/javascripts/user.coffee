@@ -1,12 +1,12 @@
 $(document).ready ->
   if $("#users-location-map")
-    $("#users-location-map").html('<img src="/images/spinner.gif" alt="Loading ..." style="box-shadow: none">')
+    $("#users-location-map").html('<img src="/assets/spinner.gif" alt="Loading ..." style="box-shadow: none">')
     lnglat = $('#user-location-token').html()
     if lnglat
       lng = lnglat.split(",")[0]
       lat = lnglat.split(",")[1]
       loadUserMap(parseFloat(lng),parseFloat(lat))
-           
+
 loadUserMap = (lng,lat) ->
   latlng = new google.maps.LatLng(lng,lat)
   myOptions = {

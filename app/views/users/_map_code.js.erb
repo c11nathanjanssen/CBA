@@ -1,0 +1,38 @@
+(function() {
+  $(document).ready(function() {
+
+    if ($("#users-district-display")) {
+      $("#users-district-display").html('<img src="/assets/spinner.gif" alt="Loading ..." style="box-shadow: none">');
+      $.getJSON('http://www.polco.us/district_data/<%= district %>.json', function(d_data) {
+          var bounds, congressionalDistrict, coord, districtCoords, gMapLatLon, map, myLatLng, myOptions, northEast, southWest, _i, _len, _ref;
+          myLatLng = new google.maps.LatLng(d_data.centroid.lat, d_data.centroid.lon);
+          myOptions = {
+            zoom: 5,
+            center: myLatLng,
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+          };
+          map = new google.maps.Map(document.getElementById("users-district-display"), myOptions);
+          districtCoords = [];
+          _ref = d_data.coords;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            coord = _ref[_i];
+            gMapLatLon = new google.maps.LatLng(coord.lat, coord.lon);
+            districtCoords.push(gMapLatLon);
+          }
+          congressionalDistrict = new google.maps.Polygon({
+            paths: districtCoords,
+            strokeColor: "#B88A00",
+            strokeOpacity: 0.9,
+            strokeWeight: 2,
+            fillColor: "#F5B800",
+            fillOpacity: 0.35
+          });
+          congressionalDistrict.setMap(map);
+          southWest = new google.maps.LatLng(d_data.extents.southWest.lat, d_data.extents.southWest.lon);
+          northEast = new google.maps.LatLng(d_data.extents.northEast.lat, d_data.extents.northEast.lon);
+          bounds = new google.maps.LatLngBounds(southWest, northEast);
+          return map.fitBounds(bounds);
+      });
+    }
+  });
+}).call(this);

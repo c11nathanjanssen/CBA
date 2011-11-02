@@ -4,6 +4,7 @@ class LegislatorsControllerTest < ActionController::TestCase
 
   setup do
     @legislator = Fabricate(:rep)
+    Fabricate(:oh) # needed to get
     User.delete_all
     @user = Fabricate(:user)
     @request.env['devise.mapping'] = :user

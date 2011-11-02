@@ -37,7 +37,7 @@ class User
   has_and_belongs_to_many :senators, :class_name => "Legislator", :inverse_of => :state_constituents
   belongs_to :representative, :class_name => "Legislator", :inverse_of => :district_constituents
 
-  after_save :update_member_count
+  #after_save :update_member_count
 
   def invitation
     @invitation ||= Invitation.criteria.for_ids(self.invitation_id).first
@@ -121,7 +121,13 @@ class User
   end
 
   def new_avatar?
-    avatar.updated_at && ((Time::now() - Time::at(self.avatar.updated_at)) < 1.minute)
+    if avatar.updated_at && ((Time::now() - Time::at(self.avatar.updated_at)) < 1.minute)
+      self.use_gravatar = false
+      save
+      true
+    else
+      false
+    end
   end
 
   def admin?
@@ -187,13 +193,18 @@ class User
   end
 
   def vote_on(bill, value)
+    puts "test"
     # test to make sure the user is a member of a group
     my_groups = self.joined_groups
+    puts "joined group size is #{my_groups.size}"
     unless my_groups.empty?
       unless bill.voted_on?(self)
-        my_groups.each do |g|
+        my_groups.each_with_index do |g, i|
+          puts "processing #{value} for #{self} name: #{g.name} bill: #{bill.title} index #{i}"
           unless Vote.create(:value => value, :user => self, :polco_group => g, :bill => bill)
              raise "vote not valid"
+          else
+            puts "created vote #{value} for group #{g.name}"
           end
         end
       else
@@ -209,7 +220,7 @@ class User
   end
 
   # district fun
-  def get_district(coords)
+  def get_district_from_coords(coords)
     lat, lon = coords # .first, coords.last
     self.coordinates = [lat, lon]
     feed_url = "#{GOVTRACK_URL}perl/district-lookup.cgi?lat=#{lat}&long=#{lon}"
@@ -327,10 +338,22 @@ class User
     # for this bill -- this could be refactored significantly
     # TODO -- refactoring
     results = Array.new
-    self.joined_groups.each do |g|
+    puts "joined groups size:"
+    puts self.joined_groups.size
+    puts "the big inspection"
+    self.joined_groups.each do |t|
+      puts "*****8282832*****"
+      puts t.inspect
+    end
+    puts "8************************8"
+    self.joined_groups.each_with_index do |g,i|
+      puts "%% happy %%" + g.name + "!!" + i.to_s
       name = g.name
       # we should use the Vote table here!
-      tally=bill.get_votes_by_name_and_type(g.name, g.type)
+      tally = bill.get_votes_by_name_and_type(g.name, g.type)
+      puts "*****"
+      puts tally
+      puts "*****"
       results.push({:name => name, :tally => tally})
     end
     results
@@ -365,7 +388,7 @@ class User
   end
 
   def get_district
-    PolcoGroup.where(name: self.district, type: :district).first
+    PolcoGroup.where(name: self.district).and(type: :district).first
   end
 
   def senators_vote_on(senate_bill)
@@ -412,6 +435,8 @@ class User
     # no, it cant' be done without a good bit of de-normalization (!!)
   end
 
+  # purpose is to update the member count for each group
+  # this is done every time a member is saved
   def update_member_count
     self.joined_groups.each do |jg|
       puts "calling for #{jg.name}"

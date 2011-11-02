@@ -1,8 +1,8 @@
 GIT
   remote: git://github.com/mongoid/mongoid.git
-  revision: ccae125ccfd8867fc6bcb542032d2794db846630
+  revision: ff0580ce736ff10ce473bbd18a827d0ff80cc7db
   specs:
-    mongoid (2.3.0)
+    mongoid (2.4.0)
       activemodel (~> 3.1)
       mongo (~> 1.4)
       tzinfo (~> 0.3.22)
@@ -175,6 +175,9 @@ GEM
       mongoid (~> 2.0)
     mongoid_fulltext (0.4.4)
       unicode_utils (~> 1.0.0)
+    mongoid_session_store (2.0.1)
+      mongoid (~> 2.0)
+      rails (~> 3.0)
     mongoid_spacial (0.2.16)
       activesupport (~> 3.0)
       mongoid (>= 2.3.0)
@@ -344,7 +347,7 @@ GEM
     treetop (1.4.10)
       polyglot
       polyglot (>= 0.3.1)
-    tzinfo (0.3.29)
+    tzinfo (0.3.30)
     uglifier (1.0.3)
       execjs (>= 0.3.0)
       multi_json (>= 1.0.2)
@@ -421,6 +424,7 @@ DEPENDENCIES
   mongoid-paperclip
   mongoid-tree
   mongoid_fulltext
+  mongoid_session_store
   mongoid_spacial
   mongoid_taggable
   nifty-generators

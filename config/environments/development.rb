@@ -9,6 +9,10 @@ Cba::Application.configure do
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
+  # debug js
+  config.assets.debug = true
+  config.assets.compress = false
+
   # Show full error reports and disable caching
   config.consider_all_requests_local       = true
   # next line remarked for 3.1     

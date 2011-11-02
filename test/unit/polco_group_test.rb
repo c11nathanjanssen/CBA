@@ -4,13 +4,13 @@ class PolcoGroupTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   def setup
     PolcoGroup.destroy_all
-    common_group = Fabricate(:polco_group, {:name => 'Dan Cole', :type => :common})
-    @cali_group = Fabricate(:polco_group, {:name => 'CA', :type => :state})
-    @ca46 = Fabricate(:polco_group, {:name => 'CA46', :type => :district})
+    common_group = Fabricate(:polco_group, {:name => 'Dan Cole', :type => :common, title: 'dan_cole'})
+    @cali_group = Fabricate(:polco_group, {:name => 'CA', :type => :state, title: 'CA_state'})
+    @ca46 = Fabricate(:polco_group, {:name => 'CA46', :type => :district, title: 'CA46_district'})
     @user1 = Fabricate.build(:registered, {:joined_groups => [common_group,
                                                               @cali_group,
                                                               @ca46,
-                                                              Fabricate(:polco_group, {:name => "Gang of 12", :type => :custom})]})
+                                                              Fabricate(:polco_group, {name: "Gang of 12", type: :custom, title: 'gang_of_twelve'})]})
   end
 
   test "should not allow an unapproved type" do
@@ -22,17 +22,19 @@ class PolcoGroupTest < ActiveSupport::TestCase
     assert_equal "Only valid groups are custom, state, district, common, country", g.errors.messages[:type].first
   end
 
-  test "should force a unique name" do
+  test "should not allow a polco group to be of the same name and type" do
     g1 = PolcoGroup.new
-    g1.members << @user1
+    g1.add_member(@user1)
     g1.type = :custom
     g1.name = "Grand Vizier Merzifonlu Kara Mustafa Pasha"
+    g1.title = "gvmkmp_custom"
     g1.save
     assert g1.valid?
     g2 = PolcoGroup.new
-    g2.members << @user1
+    g2.add_member(@user1)
     g2.type = :custom
     g2.name = "Grand Vizier Merzifonlu Kara Mustafa Pasha"
+    g2.title = "gvkmp_custom"
     assert !g2.valid?
     assert_equal "is already taken", g2.errors.messages[:name].first
   end
@@ -69,16 +71,11 @@ class PolcoGroupTest < ActiveSupport::TestCase
   end
 
   test "should have one more follower when I add a follower to a group" do
-    puts "starting test"
     @cali_group.members.delete_all
-    @cali_group.save
-    @cali_group.reload
     @cali_group.save
     puts "member count: !#{@cali_group.member_count}!"
     assert_equal 0, @cali_group.member_count
-    @cali_group.members << @user1
-    puts "before"
-    puts @cali_group.member_count
+    @cali_group.add_member(@user1)
     @cali_group.reload
     puts "member count 2: !#{@cali_group.member_count}!"
     assert_equal 1, @cali_group.member_count
@@ -103,13 +100,10 @@ class PolcoGroupTest < ActiveSupport::TestCase
   test "should be able to get a tally for the polco group" do
     u = User.first
     u.votes.destroy_all
-    u.save
-    @cali_group.members << u
     b = Bill.first
-    puts u.vote_on(b, :aye)
-    puts b.votes.last
-    puts @cali_group.get_votes_tally.inspect
-    assert_equal({:ayes=>1, :nays=>0, :abstains=>0, :presents=>0}, @cali_group.get_votes_tally)
+    @cali_group.add_member(u)
+    u.vote_on(b, :aye)
+    assert_equal({:ayes=>1, :nays=>0, :abstains=>0, :presents=>0}, @cali_group.get_votes_tally(b))
   end
 
   test "should increase polco group vote count when a member votes on a bill" do
