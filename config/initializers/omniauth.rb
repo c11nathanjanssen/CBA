@@ -5,7 +5,7 @@ require File.join(Rails.root,'config/omniauth_settings')
 Rails.application.config.middleware.use OmniAuth::Builder do
   if defined? OMNIAUTH_GOOGLE
     #provider :google_apps, OpenID::Store::Filesystem.new('/tmp/openid.store')
-    provider :google_apps, OpenID::Store::Filesystem.new('/tmp/openid.store'), :domain => 'gmail.com'
+    #provider :google_apps, OpenID::Store::Filesystem.new('/tmp/openid.store'), :domain => 'gmail.com'
   end
   
   if defined? OMNIAUTH_OPENID
