@@ -1,7 +1,18 @@
-class UpdateRolls < Thor
+class UpdateGovTrackData < Thor
 
   ENV['RAILS_ENV'] ||= 'production'
   require File.expand_path('config/environment.rb')
+
+  desc "update_from_directory", "updates all bills from directory"
+  def update_from_directory
+    Dir.glob("#{Rails.root}/data/bills/*.xml").each do |bill_path|
+      bill_name = bill_path.match(/.*\/(.*).xml$/)[1]
+      puts "processing #{bill_name}"
+      b = Bill.find_or_create_by(:title => bill_name, :govtrack_name => bill_name)
+      b.update_bill
+      b.save!
+    end
+  end
 
   desc "delete_all_member_votes", "deletes all member votes from all bills (DANGER!)"
   def delete_all_member_votes

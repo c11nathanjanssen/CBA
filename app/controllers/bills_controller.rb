@@ -116,22 +116,16 @@ class BillsController < ApplicationController
       @chamber == "house" ? @bill_type = "h" : @bill_type = "s"
     end
     if @user = current_user
-      all_bills = Vote.where(user_id: current_user.id).desc(:created_at).map { |v| v.bill }.uniq
+      user_voted_bills = Vote.where(user_id: current_user.id).desc(:created_at).map { |v| v.bill }.uniq
       if @chamber == "house"
-        @filter_options = ["h", "hc", "hj", "hr"]
+        #@filter_options = ["h", "hc", "hj", "hr"]
         # TODO -- sorted by the number of votes provided to that bill -- lower priority
-        # you haven't voted on these bills
-        #Bill.house_bills.where(bill_type: @bill_type).paginate(:page => params[:page], :per_page => 10)
-        @voted_bills = all_bills.select { |b| b.bill_type != "hr" } # also shown which result you like there
-        @unvoted_bills = Bill.house_bills.desc(:created_at).limit(10).all.to_a - @voted_bills
+        @voted_bills = user_voted_bills.select { |b| b.bill_type != "hr" && b.chamber = :house } # also shown which result you like there
+        @unvoted_bills = Bill.house_bills.desc(:created_at).all.to_a - @voted_bills
       else # it is a senate bill ballot
-        @filter_options = ["s", "sr", "sc", "sj"]
-        # sorted by the number of votes provided to that bill -- lower priority
-        # Bill.senate_bills.where(bill_type: @bill_type).paginate(:page => params[:page], :per_page => 10)
-        # ^^ can expand to eballot
-        @voted_bills = all_bills.select { |b| b.bill_type != "sr" }
-        # also sorted by your most recent vote with vote result displayed@bill_type
-        @unvoted_bills = Bill.senate_bills.desc(:created_at).limit(10).all.to_a - @voted_bills
+        #@filter_options = ["s", "sr", "sc", "sj"]
+        @voted_bills = user_voted_bills.select { |b| b.bill_type != "sr" && b.chamber = :senate }
+        @unvoted_bills = Bill.senate_bills.desc(:created_at).all.to_a - @voted_bills
       end
     else
       if @chamber == "house"
@@ -180,7 +174,7 @@ class BillsController < ApplicationController
       comment.comment = params[:comment].empty? ? "no comment" : params[:comment]
       comment.name = user.name
       comment.email = user.email
-      bill.comments << comment # need markup stuff . . .
+      bill.comments << comment # TODO need markup stuff . . .
       user.vote_on(bill, vote)
       bill.save! # <-- the key line
       redirect_to e_ballot_path(params[:chamber], params[:bill_type], bill.id)

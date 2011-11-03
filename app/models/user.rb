@@ -209,7 +209,7 @@ class User
         end
       else
         Rails.logger.warn "already voted on"
-        puts "aready voted on"
+        puts "all ready voted on"
         false
         #raise "already voted on"
       end
