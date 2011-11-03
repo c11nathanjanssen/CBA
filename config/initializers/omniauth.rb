@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 #require 'openid/store/filesystem'
+OpenID = false
 require File.join(Rails.root,'config/omniauth_settings')
 Rails.application.config.middleware.use OmniAuth::Builder do
   if defined? OMNIAUTH_GOOGLE
