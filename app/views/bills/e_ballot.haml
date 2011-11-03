@@ -28,6 +28,7 @@
   %div#details
     Sponsored by
     = link_to @legislator.full_name, legislator_path(@legislator.id)
+<<<<<<< HEAD
     = image_tag legislator.image_location_small
     = @legislator.party
 - if @user
@@ -75,3 +76,70 @@
       You haven't voted on any
       = Bill.full_type(@bill_type)
       's yet.
+=======
+- if @user.nil?
+  %p
+    = link_to "Sign up", new_user_registration_path
+    or
+    = link_to "Log in", new_user_session_path
+    be represented.
+- else
+  - unless @user.registered?
+    %p
+      You haven't registered.
+      = link_to "Change that", users_geocode_path
+  - else
+    - if @user
+      %div#vote_region
+        - if @bill.voted_on?(@user)
+          %p
+            You already voted
+            %b
+              = @bill.users_vote(@bill)
+            on this bill.
+        - else
+          / restriction needed here
+          :javascript
+            $(function() {
+              $( "#radio" ).buttonset();
+            });
+          = form_tag "/bills/process_page" do
+            .form_row
+              #radio
+                - [ 'For', 'Against', 'Abstain', 'Present' ].each do |vote|
+                  = radio_button_tag 'vote', vote
+                  = label_tag "vote_#{vote}", vote.humanize
+            %div#comments
+              %div#user_comment_region
+                = content_tag :div, :id => 'new_comment_form' do
+                  %h5
+                    = hidden_field_tag "#{@bill.class.to_s.downcase.underscore}_id" , @bill.id.to_s
+                    = hidden_field_tag "chamber", @chamber
+                    = hidden_field_tag "bill_type", @bill_type
+                    .field
+                      = label_tag :comment
+                      = text_area_tag :comment, "", :rows => 5, :cols => 40, :placeholder => t(:be_polite)
+                    .field
+                      = label_tag :submit
+                      = submit_tag 'vote!'
+                      = submit_tag t(:cancel)
+      %h2 Bills you haven't voted on
+      %ul
+        = will_paginate @unvoted_bills
+        - @unvoted_bills.each do |bill|
+          %li
+            = link_to "#{bill.bill_title}", e_ballot_path(@chamber, bill.bill_type, bill.id)
+
+      - unless @voted_bills.empty?
+        %h2 Bills you have voted on
+
+        %ul
+          - @voted_bills.each do |bill|
+            %li
+              = link_to "#{bill.bill_title}", e_ballot_path(@chamber, bill.bill_type, bill.id)
+      - else
+        %p
+          You haven't voted on any
+          = Bill.full_type(@bill_type)
+          's yet.
+>>>>>>> 4f5466c4c78f5b7ea8d2a990a744ad1d3944eeba

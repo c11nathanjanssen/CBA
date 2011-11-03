@@ -23,9 +23,12 @@ class Bill
   field :bill_state, :type => String #
   field :introduced_date, :type => Date #
   field :title, :type => String
+  index :title
   field :titles, :type => Array #
   field :summary, :type => String #
   field :bill_actions, :type => Array #
+
+  index :created_at
 
   # things i get with an extra call
   field :bill_html, :type => String
