@@ -108,6 +108,7 @@ class BillsController < ApplicationController
   def e_ballot
     # need to update for non-logged in users
     @chamber = params[:chamber] || "house"
+    voted_bill_ids = @voted_bills.map(&:id)
     # want to filter down ["h", "s", "sr", "hc", "hj", "hr", "sc", "sj"]
     if params[:bill_type] # we want to filter down bills by type
       @bill_type = params[:bill_type]
@@ -116,18 +117,30 @@ class BillsController < ApplicationController
       @chamber == "house" ? @bill_type = "h" : @bill_type = "s"
     end
     if @user = current_user
-      user_voted_bills = Vote.where(user_id: current_user.id).desc(:created_at).map { |v| v.bill }.uniq
+      voted_bill_ids = Vote.
+          where(:user_id => current_user.id).
+          only(:bill_id).desc(:created_at).
+          map(&:bill_id).uniq
+      #user_voted_bills = Vote.where(user_id: current_user.id).desc(:created_at).map { |v| v.bill }.uniq
       if @chamber == "house"
         #@filter_options = ["h", "hc", "hj", "hr"]
         # TODO -- sorted by the number of votes provided to that bill -- lower priority
-        @voted_bills = user_voted_bills.select { |b| b.bill_type != "hr" && b.title[0] = 'h' }
+        #@voted_bills = user_voted_bills.select { |b| b.bill_type != "hr" && b.title[0] = 'h' }
+        @voted_bills = Bill.
+            where(:bill_type.ne => "hr", :title => /^h/).for_ids voted_bill_ids
         # also shown which result you like there
         # .desc(:created_at)
-        @unvoted_bills = (Bill.house_bills.desc(:created_at).all.to_a - @voted_bills).paginate(:page => params[:page], :per_page => 10)
+        #@unvoted_bills = (Bill.house_bills.desc(:created_at).all.to_a - @voted_bills).paginate(:page => params[:page], :per_page => 10)
+        @unvoted_bills = Bill.house_bills.
+            where(:_id.nin => voted_bill_ids).paginate :page => params[:page], :per_page => 10
       else # it is a senate bill ballot
         #@filter_options = ["s", "sr", "sc", "sj"]
-        @voted_bills = user_voted_bills.select { |b| b.bill_type != "sr" && b.title[0] = 's' }
-        @unvoted_bills = (Bill.senate_bills.desc(:created_at).all.to_a - @voted_bills).paginate(:page => params[:page], :per_page => 10)
+        @voted_bills = Bill.
+            where(:bill_type.ne => "sr", :title => /^s/).for_ids voted_bill_ids
+        @unvoted_bills = Bill.senate_bills.
+            where(:_id.nin => voted_bill_ids).paginate :page => params[:page], :per_page => 10
+        #@voted_bills = user_voted_bills.select { |b| b.bill_type != "sr" && b.title[0] = 's' }
+        #@unvoted_bills = (Bill.senate_bills.desc(:created_at).all.to_a - @voted_bills).paginate(:page => params[:page], :per_page => 10)
       end
     else
       if @chamber == "house"
