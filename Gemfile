@@ -74,6 +74,8 @@ gem "coffeebeans"
 gem 'redcarpet'
 gem 'albino'
 
+gem "oa-openid"
+
 # Bundle gems for development
 group :development do
   gem "nifty-generators"
