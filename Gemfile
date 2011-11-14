@@ -32,6 +32,7 @@ gem 'simple_form'
 
 group :production do
   gem 'unicorn'
+  gem 'newrelic_rpm'
 end
 
 # connection gems
@@ -57,7 +58,7 @@ gem 'mongoid_session_store'
 gem "haml"
 gem "will_paginate", "3.0.pre4"
 gem 'escape_utils'
-gem "RedCloth", "4.2.5" #"4.2.4.pre3 doesn't work with ruby 1.9.2-p180
+gem "RedCloth", "4.2.3" #"4.2.4.pre3 doesn't work with ruby 1.9.2-p180
 gem 'stamp'
 
 # a scheduling gem

@@ -19,12 +19,12 @@
 
 # Learn more: http://github.com/javan/whenever
 
-every 1.day, :at => '1:00 am' do
-  rake "data:get_govtrack_data"
-  command "thor update_gov_track_data:update_from_directory"    # updates all bills from directory
-  command "thor update_gov_track_data:update_rolls"             # update the rolls of all bills
-end
-
-every 1.day, :at => '2:00 am' do
-  rake "db:mongoid:create_indexes"
-end
+#every 1.day, :at => '1:00 am' do
+#  rake "data:get_govtrack_data"
+#  command "thor update_gov_track_data:update_from_directory"    # updates all bills from directory
+#  command "thor update_gov_track_data:update_rolls"             # update the rolls of all bills
+#end
+#
+#every 1.day, :at => '2:00 am' do
+#  rake "db:mongoid:create_indexes"
+#end

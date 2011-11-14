@@ -108,7 +108,6 @@ class BillsController < ApplicationController
   def e_ballot
     # need to update for non-logged in users
     @chamber = params[:chamber] || "house"
-    voted_bill_ids = @voted_bills.map(&:id)
     # want to filter down ["h", "s", "sr", "hc", "hj", "hr", "sc", "sj"]
     if params[:bill_type] # we want to filter down bills by type
       @bill_type = params[:bill_type]
@@ -117,6 +116,9 @@ class BillsController < ApplicationController
       @chamber == "house" ? @bill_type = "h" : @bill_type = "s"
     end
     if @user = current_user
+      voted_bill_ids = Vote.where(:user_id => @user.id).
+          only(:bill_id).desc(:created_at).
+          map(&:bill_id).uniq
       voted_bill_ids = Vote.
           where(:user_id => current_user.id).
           only(:bill_id).desc(:created_at).
