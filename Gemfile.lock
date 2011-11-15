@@ -10,14 +10,8 @@ GIT
 GEM
   remote: http://rubygems.org/
   specs:
-<<<<<<< HEAD
     RedCloth (4.2.5)
     RedCloth (4.2.5-x86-mingw32)
-=======
-    RedCloth (4.2.3)
-    XMLCanonicalizer (1.0.1)
-      log4r (>= 1.0.4)
->>>>>>> adc246c0743f62818185dc68113361e00e019243
     ZenTest (4.5.0)
     actionmailer (3.1.1)
       actionpack (= 3.1.1)
